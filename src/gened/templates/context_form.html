@@ -56,6 +56,30 @@
     </div>
 
     <div class="field is-horizontal">
+        <div class="field-label is-normal">
+        <label class="label" for="avoid_set">Avoid Set:</label>
+        <p class="has-text-grey">Any keywords you want the system to avoid or not use in responses for this class.</p>
+        <p class="has-text-grey">Write one per line.</p>
+        </div>
+        <div class="field-body
+        ">
+        {% if contexts %}
+            <div class="field">
+            <div class="control">
+                <textarea class="textarea" required name="avoid_set" id="avoid_set">{{contexts.avoid_set}}</textarea>
+            </div>
+            </div>
+        {% else %}
+            <div class="field">
+            <div class="control">
+                <textarea class="textarea" required name="avoid_set" id="avoid_set"></textarea>
+            </div>
+            </div>
+        {% endif %}
+        </div>
+    </div>
+
+    <div class="field is-horizontal">
       <div class="field-label is-normal"><!-- spacing --></div>
       <div class="field-body">
         <div class="field is-grouped">

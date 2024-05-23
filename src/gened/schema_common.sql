@@ -170,6 +170,7 @@ CREATE TABLE contexts (
     context_name TEXT NOT NULL,
     create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
     description TEXT,
+    avoid_set TEXT,
     user_id INTEGER NOT NULL,
     FOREIGN KEY(user_id) REFERENCES users(id)
 );

@@ -206,10 +206,6 @@ def set_role_instructor(role_id: int, bool_instructor: int) -> str:
 @bp.route("/contexts")
 def contexts() -> str:
     db = get_db()
-    # print all tables
-    print("!\n"*10)
-    for row in db.execute("SELECT * FROM contexts").fetchall():
-        print(row)
     contexts = db.execute("SELECT * FROM contexts").fetchall()
     return render_template("contexts.html", contexts=contexts)
 
@@ -229,10 +225,10 @@ def context_save() -> Response:
     context_id = request.form.get('context_id', type=int)
     display_name = get_auth()['display_name']
     if context_id is None:
-        cur = db.execute("INSERT INTO contexts (context_name, description, user_id) VALUES (?, ?, ?)", [request.form['context_name'], request.form['description'], display_name])
+        cur = db.execute("INSERT INTO contexts (context_name, description, avoid_set, user_id) VALUES (?, ?, ?, ?)", [request.form['context_name'], request.form['description'], request.form['avoid_set'], display_name])
         context_id = cur.lastrowid
     else:
-        db.execute("UPDATE contexts SET context_name=?, description=? WHERE id=?", [request.form['context_name'], request.form['description'], context_id])
+        db.execute("UPDATE contexts SET context_name=?, description=?, avoid_set=? WHERE id=?", [request.form['context_name'], request.form['description'], request.form['avoid_set'], context_id])
     db.commit()
     return redirect("/instructor/contexts")
 

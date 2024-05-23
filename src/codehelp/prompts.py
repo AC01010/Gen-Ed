@@ -80,7 +80,7 @@ Is the student's issue consistent with the assignment context in <context_{nonce
 How would you respond to the student to guide them to solve the assignment, correct misunderstandings, and explain concepts without providing example code?
 """
     
-    # print(a)
+    print(a)
     return a
 
 
