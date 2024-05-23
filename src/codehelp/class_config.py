@@ -20,13 +20,14 @@ class ClassConfig:
     languages: list[str] = field(default_factory=_default_langs)
     default_lang: str | None = None
     avoid: str = ''
+    context: str = ''
 
     @classmethod
     def from_request_form(cls, form: ImmutableMultiDict[str, str]) -> Self:
         return cls(
             languages=form.getlist('languages[]'),
             default_lang=form.get('default_lang', None),
-            avoid=form['avoid'],
+            avoid=form['avoid']
         )
 
 

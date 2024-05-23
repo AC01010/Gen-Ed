@@ -86,7 +86,10 @@ SPDX-License-Identifier: AGPL-3.0-only
         <div class="field is-horizontal">
           <div class="field-label is-normal"><!-- spacing --></div>
           <div class="field-body">
-            <div class="field">
+            <div class="field is-grouped">
+              <div class="control">
+                <a class="button is-link" href="{{ url_for("instructor.contexts") }}">Configure Contexts</a>
+              </div>
               <div class="control">
                 <button class="button is-link" type="submit" >Save</button>
               </div>

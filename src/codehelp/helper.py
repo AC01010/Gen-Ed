@@ -31,6 +31,8 @@ def help_form(query_id: int | None = None) -> str:
     class_config = get_class_config()
 
     languages = class_config.languages
+    contexts = db.execute("SELECT * FROM contexts").fetchall()
+    contexts = [context['context_name'] for context in contexts]
     selected_lang = class_config.default_lang
 
     # Select most recently submitted language, if available
@@ -47,7 +49,7 @@ def help_form(query_id: int | None = None) -> str:
 
     history = get_history()
 
-    return render_template("help_form.html", query=query_row, history=history, languages=languages, selected_lang=selected_lang)
+    return render_template("help_form.html", query=query_row, history=history, languages=languages, selected_lang=selected_lang, contexts=contexts)
 
 
 @bp.route("/view/<int:query_id>")
@@ -83,7 +85,7 @@ def score_response(response_txt: str | None, avoid_set: Iterable[str]) -> int:
     return score
 
 
-async def run_query_prompts(llm_dict: LLMDict, language: str, code: str, error: str, issue: str) -> tuple[list[dict[str, str]], dict[str, str]]:
+async def run_query_prompts(llm_dict: LLMDict, language: str, code: str, error: str, issue: str, context: str) -> tuple[list[dict[str, str]], dict[str, str]]:
     ''' Run the given query against the coding help system of prompts.
 
     Returns a tuple containing:
@@ -102,7 +104,7 @@ async def run_query_prompts(llm_dict: LLMDict, language: str, code: str, error: 
         get_completion(
             client,
             model=model,
-            prompt=prompts.make_main_prompt(language, code, error, issue, avoid_set),
+            prompt=prompts.make_main_prompt(language, code, error, issue, avoid_set, context),
             n=1,
             score_func=lambda x: score_response(x, avoid_set)
         )
@@ -111,12 +113,15 @@ async def run_query_prompts(llm_dict: LLMDict, language: str, code: str, error: 
         get_completion(
             client,
             model=model,
-            prompt=prompts.make_sufficient_prompt(language, code, error, issue),
+            prompt=prompts.make_sufficient_prompt(language, code, error, issue, context),
         )
     )
 
     # Store all responses received
     responses = []
+
+    print("---RESPONSES---")
+    print(responses)
 
     # Let's get the main response.
     response_main, response_txt = await task_main
@@ -144,10 +149,10 @@ async def run_query_prompts(llm_dict: LLMDict, language: str, code: str, error: 
         return responses, {'insufficient': response_sufficient_txt, 'main': response_txt}
 
 
-def run_query(llm_dict: LLMDict, language: str, code: str, error: str, issue: str) -> int:
+def run_query(llm_dict: LLMDict, language: str, code: str, error: str, issue: str, context: str) -> int:
     query_id = record_query(language, code, error, issue)
 
-    responses, texts = asyncio.run(run_query_prompts(llm_dict, language, code, error, issue))
+    responses, texts = asyncio.run(run_query_prompts(llm_dict, language, code, error, issue, context))
 
     record_response(query_id, responses, texts)
 
@@ -195,10 +200,12 @@ def help_request(llm_dict: LLMDict) -> Response:
     code = request.form["code"]
     error = request.form["error"]
     issue = request.form["issue"]
+    db = get_db()
+    context_row = db.execute("SELECT * FROM contexts WHERE context_name=?", [request.form["context_id"]]).fetchone()
+    context = context_row['description'] if context_row else ""
 
     # TODO: limit length of code/error/issue
-
-    query_id = run_query(llm_dict, language, code, error, issue)
+    query_id = run_query(llm_dict, language, code, error, issue, context)
 
     return redirect(url_for(".help_view", query_id=query_id))
 
@@ -216,13 +223,14 @@ def load_test(llm_dict: LLMDict) -> Response:
     code = "__LOADTEST_Code"
     error = "__LOADTEST_Error"
     issue = "__LOADTEST_Issue"
+    context = "__LOADTEST_Context"
 
     # Monkey-patch to not call the API but simulate it with a delay
     with patch("openai.resources.chat.AsyncCompletions.create") as mocked:
         # simulate a 2 second delay for a network request
         mocked.side_effect = mock_async_completion(delay=2.0)
 
-        query_id = run_query(llm_dict, language, code, error, issue)
+        query_id = run_query(llm_dict, language, code, error, issue, context)
 
     return redirect(url_for(".help_view", query_id=query_id))
 

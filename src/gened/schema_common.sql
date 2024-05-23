@@ -18,6 +18,7 @@ DROP TABLE IF EXISTS classes_user;
 DROP TABLE IF EXISTS demo_links;
 DROP TABLE IF EXISTS migrations;
 DROP TABLE IF EXISTS models;
+DROP TABLE IF EXISTS contexts;
 
 PRAGMA foreign_keys = ON;  -- back on for good
 
@@ -164,3 +165,11 @@ INSERT INTO models(name, shortname, model) VALUES
     ('OpenAI GPT-4 Turbo', 'GPT-4', 'gpt-4-turbo-2024-04-09')
 ;
 
+CREATE TABLE contexts (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    context_name TEXT NOT NULL,
+    create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    description TEXT,
+    user_id INTEGER NOT NULL,
+    FOREIGN KEY(user_id) REFERENCES users(id)
+);

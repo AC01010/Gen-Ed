@@ -1,0 +1,33 @@
+
+{% extends "base.html" %}
+{% from "tables.html" import datatable %}
+
+{% block body %}
+<section class="section p-5">
+  <h1 class="title">{{ auth['class_name'] }}</h1>
+  <div class="tbl_cols">
+    <div class="tbl_col" style="width: 75em; flex-grow: 1;">
+      <h2 class="is-size-3">Contexts <a class="button is-light is-link is-small mt-2" href="{{url_for('instructor.context_new')}}">Create New</a></h2>
+      {{ datatable(
+           'contexts',
+           [
+                ('id', 'id'),
+                ('name', 'context_name'),
+                ('description', 'description'),
+                ('created', 'create_time'),
+                ('user', 'user_id', 'r'),
+            ],
+              contexts,
+                hidden_cols=['id'],
+                link_col=0,
+                link_template="/instructor/contexts/${value}", 
+                csv_link=url_for("instructor.get_csv", kind="contexts") | safe,
+
+            )
+        }}
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+    

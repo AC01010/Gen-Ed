@@ -202,3 +202,43 @@ def set_role_instructor(role_id: int, bool_instructor: int) -> str:
     db.commit()
 
     return "okay"
+
+@bp.route("/contexts")
+def contexts() -> str:
+    db = get_db()
+    # print all tables
+    print("!\n"*10)
+    for row in db.execute("SELECT * FROM contexts").fetchall():
+        print(row)
+    contexts = db.execute("SELECT * FROM contexts").fetchall()
+    return render_template("contexts.html", contexts=contexts)
+
+@bp.route("/contexts/new")
+def context_new() -> str:
+    return render_template("context_form.html")
+
+@bp.route("/contexts/<int:id>")
+def context_form(id: int | None = None) -> str:
+    db = get_db()
+    context_row = db.execute("SELECT * FROM contexts WHERE id=?", [id]).fetchone()
+    return render_template("context_form.html", contexts=context_row)
+
+@bp.route("/contexts/save", methods=["POST"])
+def context_save() -> Response:
+    db = get_db()
+    context_id = request.form.get('context_id', type=int)
+    display_name = get_auth()['display_name']
+    if context_id is None:
+        cur = db.execute("INSERT INTO contexts (context_name, description, user_id) VALUES (?, ?, ?)", [request.form['context_name'], request.form['description'], display_name])
+        context_id = cur.lastrowid
+    else:
+        db.execute("UPDATE contexts SET context_name=?, description=? WHERE id=?", [request.form['context_name'], request.form['description'], context_id])
+    db.commit()
+    return redirect("/instructor/contexts")
+
+@bp.route("/contexts/delete/<int:id>")
+def context_delete(id: int) -> Response:
+    db = get_db()
+    db.execute("DELETE FROM contexts WHERE id=?", [id])
+    db.commit()
+    return redirect("/instructor/contexts")

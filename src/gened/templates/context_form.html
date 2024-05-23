@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+ 
+
+{% block body %}
+  <div class="container">
+
+    <form action="{{url_for('instructor.context_save')}}" method="post">
+      {% if contexts %}
+        <h1 class="title">Edit Context</h1>
+        <input type="hidden" name="context_id" value="{{contexts.id}}">
+      {% else %}
+        <h1 class="title">New Context</h1>
+      {% endif %}
+
+      <div class="field is-horizontal">
+        <div class="field-label is-normal">
+          <label class="label" for="context_name">Name:</label>
+        </div>
+        <div class="field-body">
+          {% if contexts %}
+            <div class="field">
+              <div class="control">
+                <input class="input" required name="context_name" id="context_name" value="{{contexts.context_name}}">
+              </div>
+            </div>
+          {% else %}
+            <div class="field">
+              <div class="control">
+                <input class="input" required name="context_name" id="context_name">
+              </div>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+    <div class="field is-horizontal">
+        <div class="field-label is-normal">
+        <label class="label" for="description">Description:</label>
+        </div>
+        <div class="field-body
+        ">
+        {% if contexts %}
+            <div class="field">
+            <div class="control">
+                <textarea class="textarea" required name="description" id="description">{{contexts.description}}</textarea>
+            </div>
+            </div>
+        {% else %}
+            <div class="field">
+            <div class="control">
+                <textarea class="textarea" required name="description" id="description"></textarea>
+            </div>
+            </div>
+        {% endif %}
+        </div>
+    </div>
+
+    <div class="field is-horizontal">
+      <div class="field-label is-normal"><!-- spacing --></div>
+      <div class="field-body">
+        <div class="field is-grouped">
+          <div class="control">
+            <button class="button is-link" type="submit">Submit</button>
+          </div>
+          {% if contexts %}
+          <div class="control">
+            <a class="button is-danger" onclick="return confirm('Are you sure you want to delete this context?')" href="{{url_for('instructor.context_delete', id=contexts.id)}}">Delete</a>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    </form>
+
+  </div>
+{% endblock %}
+

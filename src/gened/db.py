@@ -64,6 +64,8 @@ def on_init_db(func: Callable[[], None]) -> Callable[[], None]:
 
 
 def init_db() -> None:
+    print("Initializing the database.")
+    print("@\n"*100)
     db = get_db()
 
     # Common schema in the gened package

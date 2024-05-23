@@ -43,6 +43,33 @@ SPDX-License-Identifier: AGPL-3.0-only
       </div>
       {% endif %}
 
+      {% if contexts %}
+      <div class="field is-horizontal">
+        <div class="field-label {% if contexts | length > 1 %}is-normal{% endif %}">
+          <label class="label" for="context">Context:</label>
+        </div>
+        <div class="field-body">
+          {% if contexts | length == 1 %}
+            <input type="hidden" name="context_id" value="0">
+            {{ contexts[0] }}
+          {% else %}
+            <div class="field">
+              <div class="control">
+                <div class="select">
+                  <select name="context_id" id="context" required x-bind:disabled="loading">
+                    <option value="">Please select</option>
+                    {% for context in contexts %}
+                    <option value="{{context}}">{{ context }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+              </div>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+      {% endif %}
+
       <div class="field is-horizontal">
         <div class="field-label is-normal">
           <label class="label" for="code">Code:</label>
