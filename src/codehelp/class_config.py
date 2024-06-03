@@ -26,8 +26,7 @@ class ClassConfig:
     def from_request_form(cls, form: ImmutableMultiDict[str, str]) -> Self:
         return cls(
             languages=form.getlist('languages[]'),
-            default_lang=form.get('default_lang', None),
-            avoid=form['avoid']
+            default_lang=form.get('default_lang', None)
         )
 
 

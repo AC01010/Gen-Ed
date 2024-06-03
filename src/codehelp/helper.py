@@ -145,9 +145,9 @@ async def run_query_prompts(llm_dict: LLMDict, language: str, code: str, error: 
         return responses, {'insufficient': response_sufficient_txt, 'main': response_txt}
 
 
-def run_query(llm_dict: LLMDict, language: str, code: str, error: str, issue: str, context: str, avoid_set: str) -> int:
-    query_id = record_query(language, code, error, issue)
+def run_query(llm_dict: LLMDict, language: str, code: str, error: str, issue: str, context_id: str, context: str, avoid_set: str) -> int:
 
+    query_id = record_query(language, code, error, issue, context_id)
     responses, texts = asyncio.run(run_query_prompts(llm_dict, language, code, error, issue, context, avoid_set))
 
     record_response(query_id, responses, texts)
@@ -155,14 +155,14 @@ def run_query(llm_dict: LLMDict, language: str, code: str, error: str, issue: st
     return query_id
 
 
-def record_query(language: str, code: str, error: str, issue: str) -> int:
+def record_query(language: str, code: str, error: str, issue: str, context: str) -> int:
     db = get_db()
     auth = get_auth()
     role_id = auth['role_id']
 
     cur = db.execute(
-        "INSERT INTO queries (language, code, error, issue, user_id, role_id) VALUES (?, ?, ?, ?, ?, ?)",
-        [language, code, error, issue, auth['user_id'], role_id]
+        "INSERT INTO queries (language, code, error, issue, user_id, role_id, context) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        [language, code, error, issue, auth['user_id'], role_id, context]
     )
     new_row_id = cur.lastrowid
     db.commit()
@@ -197,13 +197,12 @@ def help_request(llm_dict: LLMDict) -> Response:
     error = request.form["error"]
     issue = request.form["issue"]
     db = get_db()
-    context_row = db.execute("SELECT * FROM contexts WHERE id=?", [request.form["context_id"]]).fetchone()
+    context_row = db.execute("SELECT * FROM contexts WHERE context_name=?", [request.form["context_id"]]).fetchone()
     context = context_row['description'] if context_row else ""
-    print(context_row)
     avoid_set = {x.strip() for x in context_row['avoid_set'].split('\n') if x.strip() != ''}
 
     # TODO: limit length of code/error/issue
-    query_id = run_query(llm_dict, language, code, error, issue, context, avoid_set)
+    query_id = run_query(llm_dict, language, code, error, issue, request.form["context_id"], context, avoid_set)
 
     return redirect(url_for(".help_view", query_id=query_id))
 
@@ -222,6 +221,8 @@ def load_test(llm_dict: LLMDict) -> Response:
     error = "__LOADTEST_Error"
     issue = "__LOADTEST_Issue"
     context = "__LOADTEST_Context"
+    context_id = "__LOADTEST_ContextID"
+
     avoid_set = []
 
     # Monkey-patch to not call the API but simulate it with a delay
@@ -229,7 +230,7 @@ def load_test(llm_dict: LLMDict) -> Response:
         # simulate a 2 second delay for a network request
         mocked.side_effect = mock_async_completion(delay=2.0)
 
-        query_id = run_query(llm_dict, language, code, error, issue, context, avoid_set)
+        query_id = run_query(llm_dict, language, code, error, issue, context_id, context, avoid_set)
 
     return redirect(url_for(".help_view", query_id=query_id))
 
